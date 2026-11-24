@@ -1,0 +1,167 @@
+
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>Smart Home</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+body {
+    margin: 0;
+    padding: 24px;
+    background: #10151d;
+    color: #ffffff;
+    font-family: Arial, sans-serif;
+}
+h1 {
+    font-size: 32px;
+    font-weight: normal;
+}
+#clock {
+    font-size: 48px;
+    color: #90caf9;
+}
+#date {
+    color: #aab5c4;
+    font-size: 18px;
+}
+.dashboard {
+    margin-top: 25px;
+    overflow: hidden;
+}
+.tile {
+    float: left;
+    width: 31%;
+    margin: 1%;
+    padding: 20px;
+    height: 165px;
+    background: #202c3b;
+    border-radius: 14px;
+}
+.name {
+    font-size: 19px;
+    color: #b9c9da;
+}
+.value {
+    font-size: 36px;
+    margin-top: 20px;
+}
+.detail {
+    color: #90caf9;
+    margin-top: 10px;
+}
+button {
+    width: 100%;
+    padding: 15px;
+    margin-top: 15px;
+    background: #34465b;
+    color: white;
+    border: 0;
+    border-radius: 8px;
+    font-size: 20px;
+}
+.active {
+    background: #1976d2;
+}
+#status {
+    margin-top: 25px;
+    color: #81c784;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Smart Home</h1>
+<div id="clock">--:--</div>
+<div id="date"></div>
+
+<div class="dashboard">
+
+<div class="tile">
+    <div class="name">Soggiorno</div>
+    <div class="value">20,5 &deg;C</div>
+    <div class="detail">Umidit&agrave; 65%</div>
+</div>
+
+<div class="tile">
+    <div class="name">Camera</div>
+    <div class="value">19,8 &deg;C</div>
+    <div class="detail">Umidit&agrave; 62%</div>
+</div>
+
+<div class="tile">
+    <div class="name">Esterno</div>
+    <div class="value">14,2 &deg;C</div>
+    <div class="detail">Umidit&agrave; 78%</div>
+</div>
+
+<div class="tile">
+    <div class="name">Luce camera</div>
+    <button onclick="toggleLight(this)">OFF</button>
+</div>
+
+<div class="tile">
+    <div class="name">Luce scala</div>
+    <button onclick="toggleLight(this)">OFF</button>
+</div>
+
+<div class="tile">
+    <div class="name">Fotovoltaico</div>
+    <div class="value">2,4 kW</div>
+    <div class="detail">Batteria 78%</div>
+</div>
+
+</div>
+
+<div id="status">
+    Test JavaScript in corso...
+</div>
+
+<p style="color:#8795a5">
+    Modalit&agrave; dimostrativa - SmartThings non ancora collegato
+</p>
+
+<script>
+function pad(n) {
+    return n < 10 ? "0" + n : n;
+}
+
+function updateClock() {
+    var d = new Date();
+    document.getElementById("clock").innerHTML =
+        pad(d.getHours()) + ":" +
+        pad(d.getMinutes()) + ":" +
+        pad(d.getSeconds());
+
+    document.getElementById("date").innerHTML =
+        pad(d.getDate()) + "/" +
+        pad(d.getMonth() + 1) + "/" +
+        d.getFullYear();
+}
+
+function toggleLight(btn) {
+    if (btn.innerHTML === "OFF") {
+        btn.innerHTML = "ON";
+        btn.className = "active";
+    } else {
+        btn.innerHTML = "OFF";
+        btn.className = "";
+    }
+}
+
+updateClock();
+setInterval(updateClock, 1000);
+
+document.getElementById("status").innerHTML =
+    "Test JavaScript riuscito";
+</script>
+
+</body>
+</html>
