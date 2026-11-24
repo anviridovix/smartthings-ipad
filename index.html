@@ -13,154 +13,365 @@
 }
 body {
     margin: 0;
-    padding: 24px;
-    background: #10151d;
+    padding: 20px;
+    background: #10141c;
     color: #ffffff;
     font-family: Arial, sans-serif;
 }
 h1 {
-    font-size: 32px;
-    font-weight: normal;
+    margin: 0;
+    font-size: 28px;
+}
+.header {
+    text-align: center;
+    padding: 15px;
 }
 #clock {
-    font-size: 48px;
-    color: #90caf9;
+    font-size: 64px;
+    font-weight: bold;
+    margin-top: 15px;
 }
 #date {
-    color: #aab5c4;
+    color: #aab5c5;
+    font-size: 20px;
+}
+.panel {
+    background: #202938;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 15px 0;
+}
+input {
+    padding: 12px;
+    width: 100%;
+    max-width: 360px;
+    border: 1px solid #536174;
+    border-radius: 8px;
+    background: #10141c;
+    color: white;
     font-size: 18px;
 }
-.dashboard {
-    margin-top: 25px;
-    overflow: hidden;
-}
-.tile {
-    float: left;
-    width: 31%;
-    margin: 1%;
-    padding: 20px;
-    height: 165px;
-    background: #202c3b;
-    border-radius: 14px;
-}
-.name {
-    font-size: 19px;
-    color: #b9c9da;
-}
-.value {
-    font-size: 36px;
-    margin-top: 20px;
-}
-.detail {
-    color: #90caf9;
-    margin-top: 10px;
-}
 button {
-    width: 100%;
-    padding: 15px;
-    margin-top: 15px;
-    background: #34465b;
+    background: #2879e8;
     color: white;
     border: 0;
     border-radius: 8px;
-    font-size: 20px;
+    padding: 12px 18px;
+    font-size: 16px;
+    margin: 5px;
 }
-.active {
-    background: #1976d2;
+.secondary {
+    background: #384557;
+}
+.device {
+    float: left;
+    width: 31.33%;
+    margin: 1%;
+    background: #202938;
+    padding: 16px;
+    border-radius: 12px;
+    height: 110px;
+    overflow: hidden;
+}
+.device-name {
+    font-size: 18px;
+    font-weight: bold;
+    word-wrap: break-word;
+}
+.device-type {
+    color: #9baabd;
+    font-size: 13px;
+    margin-top: 10px;
 }
 #status {
-    margin-top: 25px;
-    color: #81c784;
+    color: #f0bc59;
+    font-size: 16px;
+    padding: 10px 0;
+}
+#devices {
+    overflow: hidden;
+}
+.footer {
+    clear: both;
+    text-align: center;
+    color: #8390a3;
+    padding: 20px;
+    font-size: 13px;
+}
+@media (max-width: 600px) {
+    .device {
+        width: 48%;
+    }
 }
 </style>
 </head>
 
 <body>
 
-<h1>Smart Home</h1>
-<div id="clock">--:--</div>
-<div id="date"></div>
-
-<div class="dashboard">
-
-<div class="tile">
-    <div class="name">Soggiorno</div>
-    <div class="value">20,5 &deg;C</div>
-    <div class="detail">Umidit&agrave; 65%</div>
+<div class="header">
+    <h1>Smart Home</h1>
+    <div id="clock">00:00:00</div>
+    <div id="date"></div>
 </div>
 
-<div class="tile">
-    <div class="name">Camera</div>
-    <div class="value">19,8 &deg;C</div>
-    <div class="detail">Umidit&agrave; 62%</div>
+<div class="panel" id="login">
+    <h2>Collegamento SmartThings</h2>
+    <p>Inserisci la chiave privata della dashboard.</p>
+    <input type="password" id="key"
+        placeholder="Dashboard Key"
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off">
+    <button onclick="connect()">Collega</button>
 </div>
 
-<div class="tile">
-    <div class="name">Esterno</div>
-    <div class="value">14,2 &deg;C</div>
-    <div class="detail">Umidit&agrave; 78%</div>
+<div class="panel">
+    <div id="status">In attesa di connessione</div>
+    <div id="count"></div>
+
+    <button onclick="loadDevices()">Aggiorna</button>
+    <button class="secondary" onclick="logout()">
+        Disconnetti
+    </button>
 </div>
 
-<div class="tile">
-    <div class="name">Luce camera</div>
-    <button onclick="toggleLight(this)">OFF</button>
-</div>
+<div id="devices"></div>
 
-<div class="tile">
-    <div class="name">Luce scala</div>
-    <button onclick="toggleLight(this)">OFF</button>
+<div class="footer">
+    SmartThings Dashboard - iPad Edition v1.0
+    <div id="jsTest">Test JavaScript in corso...</div>
 </div>
-
-<div class="tile">
-    <div class="name">Fotovoltaico</div>
-    <div class="value">2,4 kW</div>
-    <div class="detail">Batteria 78%</div>
-</div>
-
-</div>
-
-<div id="status">
-    Test JavaScript in corso...
-</div>
-
-<p style="color:#8795a5">
-    Modalit&agrave; dimostrativa - SmartThings non ancora collegato
-</p>
 
 <script>
+var API_URL =
+    "https://smartthings-ipad-api.anviridovix-d93.workers.dev/";
+
+var dashboardKey = "";
+var activeRequest = null;
+
 function pad(n) {
     return n < 10 ? "0" + n : n;
 }
 
 function updateClock() {
-    var d = new Date();
-    document.getElementById("clock").innerHTML =
-        pad(d.getHours()) + ":" +
-        pad(d.getMinutes()) + ":" +
-        pad(d.getSeconds());
+    var now = new Date();
 
-    document.getElementById("date").innerHTML =
-        pad(d.getDate()) + "/" +
-        pad(d.getMonth() + 1) + "/" +
-        d.getFullYear();
+    document.getElementById("clock").textContent =
+        pad(now.getHours()) + ":" +
+        pad(now.getMinutes()) + ":" +
+        pad(now.getSeconds());
+
+    var days = [
+        "Domenica", "Lunedi", "Martedi",
+        "Mercoledi", "Giovedi", "Venerdi",
+        "Sabato"
+    ];
+
+    var months = [
+        "Gennaio", "Febbraio", "Marzo", "Aprile",
+        "Maggio", "Giugno", "Luglio", "Agosto",
+        "Settembre", "Ottobre", "Novembre",
+        "Dicembre"
+    ];
+
+    document.getElementById("date").textContent =
+        days[now.getDay()] + " " +
+        now.getDate() + " " +
+        months[now.getMonth()] + " " +
+        now.getFullYear();
 }
 
-function toggleLight(btn) {
-    if (btn.innerHTML === "OFF") {
-        btn.innerHTML = "ON";
-        btn.className = "active";
-    } else {
-        btn.innerHTML = "OFF";
-        btn.className = "";
+function setStatus(message, color) {
+    var status = document.getElementById("status");
+    status.textContent = message;
+    status.style.color = color;
+}
+
+function connect() {
+    dashboardKey = document.getElementById("key").value;
+
+    if (!dashboardKey) {
+        setStatus("Inserisci la chiave privata", "#ff7777");
+        return;
     }
+
+    loadDevices();
+}
+
+function logout() {
+    if (activeRequest) {
+        activeRequest.onreadystatechange = null;
+        activeRequest.onerror = null;
+        activeRequest.ontimeout = null;
+        activeRequest.abort();
+        activeRequest = null;
+    }
+
+    dashboardKey = "";
+
+    try {
+        localStorage.removeItem("dashboardKey");
+    } catch (e) {}
+
+    document.getElementById("key").value = "";
+    document.getElementById("devices").innerHTML = "";
+    document.getElementById("count").textContent = "";
+    document.getElementById("login").style.display = "block";
+
+    setStatus("Disconnesso", "#f0bc59");
+}
+
+function showDevices(devices) {
+    var container = document.getElementById("devices");
+    container.innerHTML = "";
+
+    devices.sort(function(a, b) {
+        return String(a.nome || "").localeCompare(
+            String(b.nome || "")
+        );
+    });
+
+    for (var i = 0; i < devices.length; i++) {
+
+        var device = devices[i];
+
+        var tile = document.createElement("div");
+        tile.className = "device";
+
+        var name = document.createElement("div");
+        name.className = "device-name";
+        name.textContent = device.nome || "Dispositivo";
+
+        var type = document.createElement("div");
+        type.className = "device-type";
+        type.textContent = device.tipo || "SmartThings";
+
+        tile.appendChild(name);
+        tile.appendChild(type);
+        container.appendChild(tile);
+    }
+
+    document.getElementById("count").textContent =
+        "Dispositivi ricevuti: " + devices.length;
+}
+
+function loadDevices() {
+
+    if (!dashboardKey) {
+        document.getElementById("login").style.display = "block";
+        setStatus("Autenticazione richiesta", "#f0bc59");
+        return;
+    }
+
+    if (activeRequest) {
+        return;
+    }
+
+    setStatus("Connessione a SmartThings...", "#f0bc59");
+
+    var xhr = new XMLHttpRequest();
+    activeRequest = xhr;
+
+    xhr.open("GET", API_URL + "?t=" + new Date().getTime(), true);
+    xhr.setRequestHeader("X-Dashboard-Key", dashboardKey);
+    xhr.timeout = 15000;
+
+    xhr.onreadystatechange = function() {
+
+        if (xhr.readyState !== 4) {
+            return;
+        }
+
+        activeRequest = null;
+
+        if (xhr.status === 200) {
+
+            try {
+                var data = JSON.parse(xhr.responseText);
+
+                if (!Array.isArray(data.dispositivi)) {
+                    throw new Error("Risposta non valida");
+                }
+
+                showDevices(data.dispositivi);
+
+                try {
+                    localStorage.setItem(
+                        "dashboardKey", dashboardKey
+                    );
+                } catch (e) {}
+
+                document.getElementById("key").value = "";
+                document.getElementById("login").style.display =
+                    "none";
+
+                setStatus(
+                    "SmartThings connesso - " +
+                    pad(new Date().getHours()) + ":" +
+                    pad(new Date().getMinutes()),
+                    "#57db91"
+                );
+
+            } catch (e) {
+                setStatus("Errore lettura dispositivi", "#ff7777");
+            }
+
+        } else if (xhr.status === 401) {
+
+            var message = "Accesso non autorizzato";
+
+            try {
+                var error = JSON.parse(xhr.responseText);
+                if (error.errore === "SmartThings API") {
+                    message = "Token SmartThings non valido o scaduto";
+                }
+            } catch (e) {}
+
+            logout();
+            setStatus(message, "#ff7777");
+
+        } else {
+
+            setStatus(
+                "Errore di connessione HTTP " + xhr.status,
+                "#ff7777"
+            );
+        }
+    };
+
+    xhr.onerror = function() {
+        activeRequest = null;
+        setStatus("Errore rete o CORS", "#ff7777");
+    };
+
+    xhr.ontimeout = function() {
+        activeRequest = null;
+        setStatus("Tempo di connessione scaduto", "#ff7777");
+    };
+
+    xhr.send(null);
 }
 
 updateClock();
 setInterval(updateClock, 1000);
 
-document.getElementById("status").innerHTML =
+document.getElementById("jsTest").textContent =
     "Test JavaScript riuscito";
-</script>
 
+try {
+    dashboardKey = localStorage.getItem("dashboardKey") || "";
+} catch (e) {}
+
+if (dashboardKey) {
+    loadDevices();
+}
+
+setInterval(function() {
+    if (dashboardKey) {
+        loadDevices();
+    }
+}, 60000);
+
+</script>
 </body>
 </html>
